@@ -65,7 +65,7 @@ export default defineConfig({
     {
       name: "api",
       // API tests don't need browser setup or login state.
-      testMatch: /.*\.api\.spec\.ts/,
+      testMatch: "**/api/**/*.spec.ts",
       use: {
         baseURL: "https://api.practicesoftwaretesting.com",
       },

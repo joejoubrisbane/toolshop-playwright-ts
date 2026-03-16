@@ -1,8 +1,6 @@
 import { test as setup, expect } from "@playwright/test";
 import { registerUser } from "../../lib/datafactory/register";
 import { LoginPage } from "../../lib/page/login.page";
-
-require('dotenv').config();
 setup("authenticate via api call", async ({ context, page, request }) => {
   const BASE_URL = "https://api.practicesoftwaretesting.com";
   const APP_URL = "https://practicesoftwaretesting.com"; // your UI base URL
