@@ -47,18 +47,21 @@ export default defineConfig({
     {
       name: "chromium",
       dependencies: ["setup"],
+      testIgnore: "**/api/**",
       use: { ...devices["Desktop Chrome"], permissions: ["clipboard-read"] },
     },
 
     {
       name: "firefox",
       dependencies: ["setup"],
+      testIgnore: "**/api/**",
       use: { ...devices["Desktop Firefox"] },
     },
 
     {
       name: "webkit",
       dependencies: ["setup"],
+      testIgnore: "**/api/**",
       use: { ...devices["Desktop Safari"] },
     },
 

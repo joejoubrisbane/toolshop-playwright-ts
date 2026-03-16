@@ -4,7 +4,7 @@ test.beforeEach(async ({ page }) => {
   await page.goto("https://practicesoftwaretesting.com");
 });
 test.describe("User Checkout", () => {
-  test("should allow a user to complete the checkout process", async ({ page }) => {
+  test("should allow a user to complete the checkout process", async ({ page, headless }) => {
     // Navigate to the homepage and search for "Combination Pliers"
     await page.getByAltText("Combination Pliers").click();
     await page.getByRole("button", { name: "Add to Cart" }).click();
@@ -24,7 +24,10 @@ test.describe("User Checkout", () => {
     await page.getByTestId('payment-method').selectOption('buy-now-pay-later');
     await page.getByTestId('monthly_installments').selectOption('3');
     await page.getByTestId('finish').click();
-    await expect(page.getByTestId('payment-success-message')).toBeVisible();
+    await expect(page.getByTestId('payment-success-message')).toHaveText('Payment was successful');
+    headless? await test.step("Visual Test: Verify order confirmation page", async () => {
+      await expect(page).toHaveScreenshot("order-confirmation.png", { mask: [page.getByTitle("Practice Software Testing - Toolshop")] });
+    }): console.log("Skipping visual test in headed mode");                               
     await page.getByRole("button", { name: " Confirm " }).click();
     await expect(page.getByText('Thanks for your order! Your')).toBeVisible();
   });

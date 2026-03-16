@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-test.use({ baseURL: "https://api.practicesoftwaretesting.com" });
+
 test("GET /products", async ({ request }) => {
 
   const response = await request.get("/products");
