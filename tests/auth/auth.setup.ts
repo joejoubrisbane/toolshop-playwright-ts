@@ -1,6 +1,8 @@
 import { test as setup, expect } from "@playwright/test";
 import { registerUser } from "../../lib/datafactory/register";
 import { LoginPage } from "../../lib/page/login.page";
+
+require('dotenv').config();
 setup("authenticate via api call", async ({ context, page, request }) => {
   const BASE_URL = "https://api.practicesoftwaretesting.com";
   const APP_URL = "https://practicesoftwaretesting.com"; // your UI base URL
@@ -33,7 +35,7 @@ setup("authenticate via api call", async ({ context, page, request }) => {
 setup("authenticate with new sign up user", async ({ page, context }) => {
   const loginPage = new LoginPage(page);
   const email = `customer+${Date.now()}@practicesoftwaretesting.com`;
-  const password = "Pk0806449!";
+  const password = process.env.NEW_USER_PASSWORD! ;
   const customer01AuthFile = ".auth/customer01.json";
   // You can add authentication logic here if needed
   // For now, this is a placeholder setup step
