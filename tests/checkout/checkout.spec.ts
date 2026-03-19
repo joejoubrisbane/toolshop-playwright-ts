@@ -1,34 +1,99 @@
-import { test, expect } from "@playwright/test";
-test.use({ storageState: ".auth/customer01.json" });
-test.beforeEach(async ({ page }) => {
-  await page.goto("https://practicesoftwaretesting.com");
+import { test, expect } from "@fixtures/pages.fixtures";
+import { randomState } from "@helpers/stats";
+import { CheckoutPage } from "@pages/checkout.page";
+import { registerUser } from "@datafactory/register";
+
+const searchTerm = "Combination Pliers";
+const userInfo = {
+  street: "123 Main St",
+  city: "Anytown",
+  state: randomState(),
+  country: "Australia",
+  postcode: "4109",
+};
+
+const paymentScenarios = [
+  {
+    method: "Buy Now Pay Later",
+    setupPayment: async (checkoutPage: CheckoutPage) => {
+      await checkoutPage.selectPaymentMethod("Buy Now Pay Later");
+      await checkoutPage.selectMonthlyInstallments("3");
+      await expect(checkoutPage.monthlyInstallmentsSelect).toHaveValue("3");
+    },
+  },
+  {
+    method: "Bank Transfer",
+    setupPayment: async (checkoutPage: CheckoutPage) => {
+      await checkoutPage.selectPaymentMethod("Bank Transfer");
+      await checkoutPage.fillBankInformation({ bankName: "Test Bank", accountName: "John Doe", accountNumber: "123456789" });
+    },
+  },
+  {
+    method: "Cash on Delivery",
+    setupPayment: async (checkoutPage: CheckoutPage) => {
+      await checkoutPage.selectPaymentMethod("Cash on Delivery");
+    },
+  },
+  {
+    method: "Credit Card",
+    setupPayment: async (checkoutPage: CheckoutPage) => {
+      await checkoutPage.selectPaymentMethod("Credit Card");
+      await checkoutPage.fillCreditCard({ number: "0000-0000-0000-0000", expiry: "12/2026", cvv: "123", cardholderName: "John Doe" });
+    },
+  },
+  {
+    method: "Gift Card",
+    setupPayment: async (checkoutPage: CheckoutPage) => {
+      await checkoutPage.selectPaymentMethod("Gift Card");
+      await checkoutPage.fillGiftCardCode("GIFT123", "VALID123");
+    },
+  },
+];
+
+test.beforeEach(async ({ page, loginPage }) => {
+  const email = `customer+${Date.now()}-${Math.random().toString(36).slice(2)}@practicesoftwaretesting.com`;
+  const password = process.env.NEW_USER_PASSWORD!;
+  await registerUser(email, password);
+  await loginPage.goto();
+  await loginPage.login(email, password);
+  await page.goto("/");
 });
-test.describe("User Checkout", () => {
-  test("should allow a user to complete the checkout process", async ({ page, headless }) => {
-    // Navigate to the homepage and search for "Combination Pliers"
-    await page.getByAltText("Combination Pliers").click();
-    await page.getByRole("button", { name: "Add to Cart" }).click();
-    await expect(page.getByRole("alert", { name: "Product added to shopping" })).toBeVisible();
-    await page.getByTestId("nav-cart").click();
-    await expect(page.getByTestId("product-name")).toHaveText("Combination Pliers");
-    await expect(page.getByTestId("product-quantity")).toHaveValue("1");
-    
-    await page.getByRole("button", { name: "Proceed to checkout" }).click();
-    
-    await page.getByTestId('proceed-2').click();
-    await expect(page.locator(".step-indicator").filter({ hasText: "2" })).toHaveCSS("background-color", "rgb(51, 153, 51)");
-    await page.getByPlaceholder("State *").fill("QLD");
-    await page.getByPlaceholder("Your country *").fill("Australia");
-    await page.getByPlaceholder("Your Postcode *").fill("4109");
-     await page.getByRole("button", { name: "Proceed to checkout" }).click();
-    await page.getByTestId('payment-method').selectOption('buy-now-pay-later');
-    await page.getByTestId('monthly_installments').selectOption('3');
-    await page.getByTestId('finish').click();
-    await expect(page.getByTestId('payment-success-message')).toHaveText('Payment was successful');
-    headless? await test.step("Visual Test: Verify order confirmation page", async () => {
-      await expect(page).toHaveScreenshot("order-confirmation.png", { mask: [page.getByTitle("Practice Software Testing - Toolshop")] });
-    }): console.log("Skipping visual test in headed mode");                               
-    await page.getByRole("button", { name: " Confirm " }).click();
-    await expect(page.getByText('Thanks for your order! Your')).toBeVisible();
-  });
+
+test.describe.parallel("User Checkout", () => {
+  for (const { method, setupPayment } of paymentScenarios) {
+    test(`should complete checkout with ${method}`, async ({ page, homePage, productPage, alertPage, navigationPage, checkoutPage }) => {
+      await test.step("Add product to cart", async () => {
+        await homePage.clickProductItem(searchTerm);
+        await productPage.clickAddToCartButton();
+        await expect(alertPage.productAddedAlert).toBeVisible();
+        await navigationPage.clickCartLink();
+        await expect(navigationPage.cartQuantity).toHaveText("1");
+      });
+
+      await test.step("Fill billing address", async () => {
+        await expect(checkoutPage.productTitle).toHaveText(searchTerm);
+        await checkoutPage.clickProceedToCheckoutButton();
+        await expect(checkoutPage.stepIndicator.filter({ hasText: "1" })).toHaveCSS("background-color", "rgb(51, 153, 51)");
+        await checkoutPage.clickProceedToCheckoutButton();
+        await expect(checkoutPage.stepIndicator.filter({ hasText: "2" })).toHaveCSS("background-color", "rgb(51, 153, 51)");
+        await checkoutPage.fillBillingAddress(userInfo);
+        await checkoutPage.clickProceedToCheckoutButton();
+      });
+
+      await test.step(`Select payment method and confirm order`, async () => {
+        await setupPayment(checkoutPage);
+        await checkoutPage.clickConfirmButton();
+        await expect(alertPage.paymentSuccessAlert).toHaveText("Payment was successful");
+        const invoiceResponsePromise = page.waitForResponse(
+          (response) =>
+            response.url().includes("/invoices") &&
+            response.request().method() === "POST"
+        );
+        await checkoutPage.clickConfirmButton();
+        const invoiceResponse = await invoiceResponsePromise;
+        const { invoice_number } = await invoiceResponse.json();
+        await expect(page.getByText("Thanks for your order! Your")).toContainText(invoice_number);
+      });
+    });
+  }
 });
