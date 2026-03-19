@@ -19,12 +19,25 @@ tests/
   auth/
     auth.setup.ts        # Auth state setup (UI login + API token strategies)
   checkout/
-    checkout.spec.ts     # End-to-end checkout flow with multi-step assertions
+    checkout.spec.ts     # Parallel checkout flows across 5 payment methods
+  contact/
+    contact.spec.ts      # Contact form submission flow
 lib/
   datafactory/
     register.ts          # API-based user registration with dynamic test data
-  page/
-    login.page.ts        # Page Object Model for login page
+  fixtures/
+    pages.fixtures.ts    # Custom test fixtures composing all page objects
+  helpers/
+    arrays.ts            # Array utility helpers
+    messages.ts          # Shared message constants
+    stats.ts             # Random data helpers (e.g. randomState)
+  pages/
+    alert.page.ts        # Alert/notification page object
+    checkout.page.ts     # Checkout page object (billing, payment, confirmation)
+    home.page.ts         # Homepage page object
+    login.page.ts        # Login page object
+    navigation.page.ts   # Navigation/header page object
+    product.page.ts      # Product detail page object
 playwright.config.ts     # Global configuration
 .github/workflows/
   playwright.yml         # GitHub Actions CI pipeline
@@ -32,14 +45,12 @@ playwright.config.ts     # Global configuration
 
 ## Key Features
 
-- **Page Object Model (POM)** — `LoginPage` class with typed Locators for
-  maintainable UI interactions
-- **Data Factory pattern** — `registerUser()` generates unique test users
-  via API using `Date.now()` for isolated test runs
-- **Dual auth strategies** — UI-based login with storageState, and API token
-  injection into localStorage
-- **API testing** — REST endpoint validation including chained requests
-  (search by name → fetch by dynamic ID)
+- **Page Object Model (POM)** — Typed page classes covering login, home, product, checkout, cart, alert, and navigation
+- **Custom fixtures** — `pages.fixtures.ts` composes all page objects into a single reusable fixture
+- **Data Factory pattern** — `registerUser()` generates unique test users via API using `Date.now()` for isolated test runs
+- **Parallel checkout coverage** — 5 payment methods (Buy Now Pay Later, Bank Transfer, Cash on Delivery, Credit Card, Gift Card) run as parallel parameterised tests
+- **Dual auth strategies** — UI-based login with storageState, and API token injection into localStorage
+- **API testing** — REST endpoint validation including chained requests (search by name → fetch by dynamic ID)
 - **Cross-browser configuration** — Chromium, Firefox, and WebKit projects
 - **CI-ready setup** — retries, parallel execution, single worker on CI
 - **Trace and video capture** on test failure for debugging
@@ -95,7 +106,8 @@ npx playwright show-report
 
 | Area | Type | Status |
 |---|---|---|
-| User checkout (add to cart → payment) | UI E2E | ✅ Local |
+| User checkout — 5 payment methods (parallel) | UI E2E | ✅ Local |
+| Contact form submission | UI E2E | ✅ Local |
 | User registration | API | ✅ Local + CI |
 | GET /products | API | ✅ Local + CI |
 | POST /users/login | API | ✅ Local + CI |
