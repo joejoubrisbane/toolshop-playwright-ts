@@ -5,6 +5,7 @@ import { ProductPage } from "@pages/product.page";
 import { AlertPage } from "@pages/alert.page";
 import { NavigationPage } from "@pages/navigation.page";
 import { CheckoutPage } from "@pages/checkout.page";
+import { SearchPage } from "@pages/search.page";
 
 type PageFixtures = {
   loginPage: LoginPage;
@@ -13,6 +14,7 @@ type PageFixtures = {
   alertPage: AlertPage;
   navigationPage: NavigationPage;
   checkoutPage: CheckoutPage;
+  searchPage: SearchPage;
 };
 
 export const test = base.extend<PageFixtures>({
@@ -33,6 +35,9 @@ export const test = base.extend<PageFixtures>({
   },
   checkoutPage: async ({ page }, use) => {
     await use(new CheckoutPage(page));
+  },
+  searchPage: async ({ page }, use) => {
+    await use(new SearchPage(page));
   },
 });
 

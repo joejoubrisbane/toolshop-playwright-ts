@@ -1,13 +1,18 @@
 import { type Page, Locator } from "@playwright/test";
 
-export class HomePage {
+export class SearchPage {
   readonly page: Page;
   readonly searchInput: Locator;
-  
+  readonly priceSliderMin: Locator;
+  readonly priceSliderMax: Locator
+  readonly searchButton: Locator;
 
   constructor(page: Page) {
     this.page = page;
     this.searchInput = page.getByTestId("search-query");
+    this.searchButton = page.getByTestId("search-submit");
+    this.priceSliderMin = page.getByRole('slider', { name: 'ngx-slider', exact: true });
+    this.priceSliderMax = page.getByRole('slider', { name: 'ngx-slider-max', exact: true });
   }
 
   async searchForProduct(productName: string) {
