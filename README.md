@@ -51,12 +51,14 @@ playwright.config.ts     # Global configuration
 
 ## Key Features
 
-- **Page Object Model (POM)** — Typed page classes covering login, home, product, checkout, cart, alert, and navigation
+- **Page Object Model (POM)** — Typed page classes covering login, home, search, product, checkout, alert, and navigation
 - **Custom fixtures** — `pages.fixtures.ts` composes all page objects into a single reusable fixture
 - **Data Factory pattern** — `registerUser()` generates unique test users via API using `Date.now()` for isolated test runs
 - **Parallel checkout coverage** — 5 payment methods (Buy Now Pay Later, Bank Transfer, Cash on Delivery, Credit Card, Gift Card) run as parallel parameterised tests
 - **Dual auth strategies** — UI-based login with storageState, and API token injection into localStorage
 - **API testing** — REST endpoint validation including chained requests (search by name → fetch by dynamic ID)
+- **Network interception** — `page.route()` used to modify live API responses and assert UI renders mocked data correctly
+- **Price range filter testing** — ngx-slider interaction via keyboard with `setSliderValue()` helper, validated against intercepted API response
 - **Cross-browser configuration** — Chromium, Firefox, and WebKit projects
 - **CI-ready setup** — retries, parallel execution, single worker on CI
 - **Trace and video capture** on test failure for debugging
@@ -114,6 +116,9 @@ npx playwright show-report
 |---|---|---|
 | User checkout — 5 payment methods (parallel) | UI E2E | ✅ Local |
 | Contact form submission | UI E2E | ✅ Local |
+| Search by keyword — result accuracy | UI E2E | ✅ Local |
+| Price range filter — slider + API response validation | UI E2E | ✅ Local |
+| API response mocking — modified product data rendered in UI | UI + Network | ✅ Local |
 | User registration | API | ✅ Local + CI |
 | GET /products | API | ✅ Local + CI |
 | POST /users/login | API | ✅ Local + CI |
