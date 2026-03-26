@@ -22,12 +22,15 @@ tests/
     checkout.spec.ts     # Parallel checkout flows across 5 payment methods
   contact/
     contact.spec.ts      # Contact form submission flow
+  ui/
+    search.spec.ts       # Search, price range filter, and API mocking tests
 lib/
   datafactory/
     register.ts          # API-based user registration with dynamic test data
   fixtures/
     pages.fixtures.ts    # Custom test fixtures composing all page objects
   helpers/
+    action.ts            # Reusable UI actions (e.g. setSliderValue)
     arrays.ts            # Array utility helpers
     messages.ts          # Shared message constants
     stats.ts             # Random data helpers (e.g. randomState)
@@ -38,6 +41,9 @@ lib/
     login.page.ts        # Login page object
     navigation.page.ts   # Navigation/header page object
     product.page.ts      # Product detail page object
+    search.page.ts       # Search page object (search input, filters, price slider)
+scripts/
+  inspect-slider.js      # One-off script to inspect DOM elements in the browser
 playwright.config.ts     # Global configuration
 .github/workflows/
   playwright.yml         # GitHub Actions CI pipeline
