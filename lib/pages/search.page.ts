@@ -6,6 +6,7 @@ export class SearchPage {
   readonly priceSliderMin: Locator;
   readonly priceSliderMax: Locator
   readonly searchButton: Locator;
+  readonly productNames: Locator;
 
   constructor(page: Page) {
     this.page = page;
@@ -13,6 +14,7 @@ export class SearchPage {
     this.searchButton = page.getByTestId("search-submit");
     this.priceSliderMin = page.getByRole('slider', { name: 'ngx-slider', exact: true });
     this.priceSliderMax = page.getByRole('slider', { name: 'ngx-slider-max', exact: true });
+    this.productNames = page.getByTestId("product-name");
   }
 
   async searchForProduct(productName: string) {

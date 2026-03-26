@@ -66,7 +66,7 @@ test.describe.parallel("User Checkout", () => {
         await homePage.searchForProduct(searchTerm);
       });
       await test.step("Add product to cart", async () => {
-        await homePage.clickProductItem(searchTerm);
+        await productPage.clickProductItem(searchTerm);
         await productPage.clickAddToCartButton();
         await expect(alertPage.productAddedAlert).toBeVisible();
         await navigationPage.clickCartLink();

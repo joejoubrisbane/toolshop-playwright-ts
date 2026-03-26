@@ -25,7 +25,7 @@ test.describe("Search Functionality", () => {
         test.setTimeout(60_000);
         const minPrice = 35;
         const maxPrice = 50;
-
+        
         const responsePromise = page.waitForResponse(
           (response) =>
             response.url().includes("/products") &&
@@ -44,6 +44,22 @@ test.describe("Search Functionality", () => {
           expect(product.price).toBeLessThanOrEqual(maxPrice);
         }
     });
-    test("should return relevant products when a category is selected", async ({ searchPage }) => {});
-    test("should return relevant products when a brand is selected", async ({ searchPage }) => {});
+    test("Validate product data is visible from modified API response", async ({ searchPage, page }) => {
+        await test.step("overwirte /products API response to include additional product details", async () => {
+            await page.route("https://api.practicesoftwaretesting.com/products*", async(route) => {
+                const response = await route.fetch();
+                const json = await response.json();
+                json.data[0]["name"] = "Modified Product Name";
+                json.data[0]["price"] = 99.99;
+                json.data[0]["description"] = "Modified Product Description";
+                json.data[0]["in_stock"] = false;
+                await route.fulfill({ response,json });
+            });
+        });
+        await page.goto("/");
+        await page.waitForURL("/");
+        await expect(searchPage.productNames.first()).toHaveText("Modified Product Name");
+        await searchPage.clickProductItem("Modified Product Name");
+    });
+    
 });

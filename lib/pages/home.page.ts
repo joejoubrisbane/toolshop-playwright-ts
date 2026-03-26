@@ -15,7 +15,4 @@ export class HomePage {
     await this.page.getByRole("button", { name: "Search " }).click();
   }
 
-  async clickProductItem(productName: string) {
-    await this.page.getByTestId("product-name").filter({ hasText: productName }).click();
-  }
 }
