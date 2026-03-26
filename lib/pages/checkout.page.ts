@@ -12,11 +12,11 @@ export class CheckoutPage {
   constructor(page: Page) {
     this.page = page;
     this.productTitle = page.getByTestId("product-title");
-    this.stepIndicator = page.locator(".step-header-circle");
-    this.proceedButton = page.getByTestId("proceed-1");
+    this.stepIndicator = page.locator(".step-indicator");
+    this.proceedButton = page.getByRole("button", { name: " Proceed to checkout " });
     this.confirmButton = page.getByTestId("finish");
     this.paymentMethodSelect = page.getByTestId("payment-method");
-    this.monthlyInstallmentsSelect = page.getByTestId("monthly-installments-plan");
+    this.monthlyInstallmentsSelect = page.getByTestId("monthly_installments");
   }
 
   async clickProceedToCheckoutButton() {
@@ -34,11 +34,11 @@ export class CheckoutPage {
     country: string;
     postcode: string;
   }) {
-    await this.page.getByTestId("address").fill(address.street);
-    await this.page.getByTestId("city").fill(address.city);
-    await this.page.getByTestId("state").fill(address.state);
-    await this.page.getByTestId("country").selectOption({ label: address.country });
-    await this.page.getByTestId("postcode").fill(address.postcode);
+    await this.page.getByPlaceholder("Your Street *").fill(address.street);
+    await this.page.getByPlaceholder("Your City *").fill(address.city);
+    await this.page.getByPlaceholder("State *").fill(address.state);
+    await this.page.getByPlaceholder("Your country *").fill(address.country);
+    await this.page.getByPlaceholder("Your Postcode *").fill(address.postcode);
   }
 
   async selectPaymentMethod(method: string) {
@@ -54,9 +54,9 @@ export class CheckoutPage {
     accountName: string;
     accountNumber: string;
   }) {
-    await this.page.getByTestId("bank-name").fill(info.bankName);
-    await this.page.getByTestId("account-name").fill(info.accountName);
-    await this.page.getByTestId("account-number").fill(info.accountNumber);
+    await this.page.getByPlaceholder("Bank Name").fill(info.bankName);
+    await this.page.getByPlaceholder("Account Name").fill(info.accountName);
+    await this.page.getByPlaceholder("Account Number").fill(info.accountNumber);
   }
 
   async fillCreditCard(info: {
@@ -65,14 +65,14 @@ export class CheckoutPage {
     cvv: string;
     cardholderName: string;
   }) {
-    await this.page.getByTestId("credit-card-number").fill(info.number);
-    await this.page.getByTestId("expiry-date").fill(info.expiry);
-    await this.page.getByTestId("cvv").fill(info.cvv);
-    await this.page.getByTestId("card-holder-name").fill(info.cardholderName);
+    await this.page.getByPlaceholder("Credit Card Number").fill(info.number);
+    await this.page.getByPlaceholder("Expiration Date").fill(info.expiry);
+    await this.page.getByPlaceholder("CVV").fill(info.cvv);
+    await this.page.getByPlaceholder("Card Holder Name").fill(info.cardholderName);
   }
 
   async fillGiftCardCode(giftCardCode: string, validationCode: string) {
-    await this.page.getByTestId("gift-card-number").fill(giftCardCode);
-    await this.page.getByTestId("validation-code").fill(validationCode);
+    await this.page.getByPlaceholder("Gift Card Number").fill(giftCardCode);
+    await this.page.getByPlaceholder("Validation Code").fill(validationCode);
   }
 }

@@ -7,7 +7,7 @@ export class AlertPage {
 
   constructor(page: Page) {
     this.page = page;
-    this.productAddedAlert = page.getByTestId("alert-success");
+    this.productAddedAlert = page.getByRole('alert', { name: 'Product added to shopping' });;
     this.paymentSuccessAlert = page.getByTestId("payment-success-message");
   }
 }

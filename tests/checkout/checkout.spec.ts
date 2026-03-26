@@ -62,6 +62,9 @@ test.beforeEach(async ({ page, loginPage }) => {
 test.describe.parallel("User Checkout", () => {
   for (const { method, setupPayment } of paymentScenarios) {
     test(`should complete checkout with ${method}`, async ({ page, homePage, productPage, alertPage, navigationPage, checkoutPage }) => {
+        await test.step("Search for product", async () => {
+        await homePage.searchForProduct(searchTerm);
+      });
       await test.step("Add product to cart", async () => {
         await homePage.clickProductItem(searchTerm);
         await productPage.clickAddToCartButton();
