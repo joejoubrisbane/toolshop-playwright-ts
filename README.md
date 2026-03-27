@@ -1,5 +1,5 @@
 # Toolshop Playwright TypeScript
-![Playwright Tests](https://github.com/joejoubrisbane/toolshop-playwright-ts/actions/workflows/playwright.yml/badge.svg)
+[![Playwright Tests](https://github.com/joejoubrisbane/toolshop-playwright-ts/actions/workflows/playwright.yml/badge.svg)](https://github.com/joejoubrisbane/toolshop-playwright-ts/actions/workflows/playwright.yml)
 A Playwright end-to-end and API test suite built as a personal portfolio project,
 covering core e-commerce user flows on [practicesoftwaretesting.com](https://practicesoftwaretesting.com).
 
