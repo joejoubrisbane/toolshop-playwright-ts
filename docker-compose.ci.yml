@@ -30,9 +30,9 @@ services:
   mariadb:
     image: yobasystems/alpine-mariadb:10.6.11
     environment:
-      MYSQL_ROOT_PASSWORD: root
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_USER: user
-      MYSQL_PASSWORD: root
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
       MYSQL_DATABASE: toolshop
 
 volumes:
