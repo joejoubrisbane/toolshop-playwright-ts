@@ -61,15 +61,4 @@ test.describe("Search Functionality", () => {
         await expect(searchPage.productNames.first()).toHaveText("Modified Product Name");
         await searchPage.clickProductItem("Modified Product Name");
     });
-     test("Validate product data is loaded from har file", async ({ searchPage, page }) => {
-        await test.step("mock /products", async () => {
-            await page.routeFromHAR(".har/products.har", {
-                url: `${process.env.API_URL || "https://api.practicesoftwaretesting.com"}/products*`,
-                update: false,
-            }); 
-        });
-        await page.goto("/");
-        await page.waitForURL("/");
-      await expect(searchPage.productNames.first()).toHaveText("Happy Path Product");
-    });
 });

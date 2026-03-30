@@ -5,6 +5,7 @@ services:
       DB_HOST: mariadb
       DB_PORT: 3306
       DISABLE_LOGGING: false
+      MAIL_MAILER: log
     volumes:
       - laravel-app-code:/var/www
     depends_on:
