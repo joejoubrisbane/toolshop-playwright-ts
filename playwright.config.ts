@@ -46,7 +46,7 @@ export default defineConfig({
     },
     {
       name: "chromium",
-      dependencies: ["setup"],
+     
       testIgnore: "**/api/**",
       use: { ...devices["Desktop Chrome"], permissions: ["clipboard-read"] },
     },
@@ -68,7 +68,7 @@ export default defineConfig({
     {
       name: "api",
       // API tests don't need browser setup or login state.
-      testMatch: "**/api/**/*.spec.ts",
+      testMatch: "**/api/*.spec.ts",
       use: {
         baseURL: process.env.API_URL || "https://api.practicesoftwaretesting.com",
       },

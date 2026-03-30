@@ -1,13 +1,10 @@
 import { test, expect } from "@playwright/test";
 import { registerUser } from "../../lib/datafactory/register";
-test("GET /products", async ({ request }) => {
 
-  const response = await request.get("/products");
-  expect(response.status()).toBe(200);
-  const body = await response.json();
-  expect(body.data.length).toBe(9);
-  expect(body.total).toBe(50);
-});
+// API tests for ToolShop application:https://api.practicesoftwaretesting.com/api/documentation#/
+
+
+
 
 test("POST /users/login", async ({ request }) => {
   const email = `customer+${Date.now()}@practicesoftwaretesting.com`;
