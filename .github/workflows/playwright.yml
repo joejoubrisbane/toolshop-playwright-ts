@@ -27,17 +27,6 @@ jobs:
         docker compose -f docker-compose.ci.yml exec -T laravel-api php artisan migrate:fresh --seed --force
         docker compose -f docker-compose.ci.yml exec -T laravel-api php artisan cache:clear
 
-    - name: Debug API status
-      run: |
-        echo "=== Container status ==="
-        docker compose -f docker-compose.ci.yml ps
-        echo "=== web logs ==="
-        docker compose -f docker-compose.ci.yml logs web --tail=20
-        echo "=== laravel-api logs ==="
-        docker compose -f docker-compose.ci.yml logs laravel-api --tail=20
-        echo "=== HTTP status from API ==="
-        curl -v http://localhost:8091/products 2>&1 | tail -30
-
     - name: Wait for API
       run: |
         echo "Waiting for API..."
