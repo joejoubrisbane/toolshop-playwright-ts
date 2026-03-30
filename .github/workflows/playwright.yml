@@ -15,13 +15,18 @@ jobs:
     - name: Start application
       run: docker compose -f docker-compose.ci.yml up -d
 
+    - name: Wait for MariaDB
+      run: |
+        echo "Waiting for MariaDB..."
+        timeout 60 bash -c 'until docker compose -f docker-compose.ci.yml exec -T mariadb mysqladmin ping -uroot -proot --silent 2>/dev/null; do sleep 3; done'
+
+    - name: Seed database
+      run: docker compose -f docker-compose.ci.yml exec -T laravel-api php artisan migrate:fresh --seed --force
+
     - name: Wait for API
       run: |
         echo "Waiting for API..."
         timeout 60 bash -c 'until curl -sf http://localhost:8091/products > /dev/null; do sleep 3; done'
-
-    - name: Seed database
-      run: docker compose -f docker-compose.ci.yml exec -T laravel-api php artisan migrate:fresh --seed --force
 
     - name: Wait for Angular UI
       run: |
