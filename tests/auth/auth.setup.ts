@@ -2,8 +2,8 @@ import { test as setup, expect } from "@playwright/test";
 import { registerUser } from "../../lib/datafactory/register";
 import { LoginPage } from "../../lib/page/login.page";
 setup("authenticate via api call", async ({ context, page, request }) => {
-  const BASE_URL = "https://api.practicesoftwaretesting.com";
-  const APP_URL = "https://practicesoftwaretesting.com"; // your UI base URL
+  const BASE_URL = process.env.API_URL || "https://api.practicesoftwaretesting.com";
+  const APP_URL = process.env.BASE_URL || "https://practicesoftwaretesting.com";
   const adminAuthFile = ".auth/admin.json";
 
   // 1. Get the token via API

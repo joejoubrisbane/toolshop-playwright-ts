@@ -46,7 +46,7 @@ test.describe("Search Functionality", () => {
     });
     test("Validate product data is visible from modified API response", async ({ searchPage, page }) => {
         await test.step("overwirte /products API response to include additional product details", async () => {
-            await page.route("https://api.practicesoftwaretesting.com/products*", async(route) => {
+            await page.route(`${process.env.API_URL || "https://api.practicesoftwaretesting.com"}/products*`, async(route) => {
                 const response = await route.fetch();
                 const json = await response.json();
                 json.data[0]["name"] = "Modified Product Name";
@@ -61,5 +61,15 @@ test.describe("Search Functionality", () => {
         await expect(searchPage.productNames.first()).toHaveText("Modified Product Name");
         await searchPage.clickProductItem("Modified Product Name");
     });
-    
+     test("Validate product data is loaded from har file", async ({ searchPage, page }) => {
+        await test.step("mock /products", async () => {
+            await page.routeFromHAR(".har/products.har", {
+                url: `${process.env.API_URL || "https://api.practicesoftwaretesting.com"}/products*`,
+                update: false,
+            }); 
+        });
+        await page.goto("/");
+        await page.waitForURL("/");
+      await expect(searchPage.productNames.first()).toHaveText("Happy Path Product");
+    });
 });

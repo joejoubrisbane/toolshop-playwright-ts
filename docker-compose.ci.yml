@@ -1,0 +1,37 @@
+services:
+  laravel-api:
+    image: testsmith/practice-software-testing-sprint5-api
+    environment:
+      DB_HOST: mariadb
+      DB_PORT: 3306
+      DISABLE_LOGGING: false
+    volumes:
+      - laravel-app-code:/var/www
+    depends_on:
+      - mariadb
+
+  angular-ui:
+    image: testsmith/practice-software-testing-sprint5-ui
+    ports:
+      - "4200:4200"
+    command: ng serve --host 0.0.0.0 --port 4200
+
+  web:
+    image: testsmith/practice-software-testing-web
+    ports:
+      - "8091:80"
+    volumes_from:
+      - laravel-api
+    depends_on:
+      - laravel-api
+
+  mariadb:
+    image: yobasystems/alpine-mariadb:10.6.11
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: user
+      MYSQL_PASSWORD: root
+      MYSQL_DATABASE: toolshop
+
+volumes:
+  laravel-app-code:

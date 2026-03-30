@@ -27,7 +27,7 @@ export default defineConfig({
   reporter: 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
-   baseURL: "https://practicesoftwaretesting.com",
+   baseURL: process.env.BASE_URL || "https://practicesoftwaretesting.com",
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: "on",
     testIdAttribute: "data-test",
@@ -70,7 +70,7 @@ export default defineConfig({
       // API tests don't need browser setup or login state.
       testMatch: "**/api/**/*.spec.ts",
       use: {
-        baseURL: "https://api.practicesoftwaretesting.com",
+        baseURL: process.env.API_URL || "https://api.practicesoftwaretesting.com",
       },
     },
 
