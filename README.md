@@ -64,6 +64,44 @@ playwright.config.ts     # Global configuration
 - **Trace and video capture** on test failure for debugging
 - **Environment variable management** via dotenv with GitHub Secrets in CI
 
+## Performance Optimisations
+
+### 1. Worker-scoped login with `storageState`
+
+**Problem:** Each checkout test registered a new user and completed a full UI login before running. With 5 parallel payment method tests, that meant 5 × (API register + login page flow) — adding ~5 seconds of overhead per test.
+
+**Goal:** Keep tests independent (no shared cart state, no race conditions in parallel runs) while eliminating the repeated login UI cost.
+
+**Approach:** A worker-scoped fixture (`workerUser`) registers one user and logs in once per Playwright worker. The resulting `storageState` (cookies + localStorage) is captured and injected into every test context in that worker at creation time — so each test starts already authenticated without touching the login page.
+
+```
+Worker starts
+  └── workerUser: register → login UI once → save storageState
+
+  Test 1: newContext({ storageState }) → already logged in → run test
+  Test 2: newContext({ storageState }) → already logged in → run test
+  ...
+```
+
+Tests remain independent — each gets its own fresh browser context and manages its own cart — but the login cost is paid once per worker, not once per test.
+
+**Results (5 checkout tests, local):**
+
+| Test | Before | After | Saved |
+|---|---|---|---|
+| Buy Now Pay Later | 20,220ms | 15,929ms | 4,291ms |
+| Bank Transfer | 20,656ms | 15,426ms | 5,230ms |
+| Cash on Delivery | 20,230ms | 15,330ms | 4,900ms |
+| Credit Card | 20,837ms | 15,864ms | 4,973ms |
+| Gift Card | 21,123ms | 15,827ms | 5,296ms |
+| **Total wall time** | **43,179ms** | **39,032ms** | **~4,147ms** |
+
+Each test saves ~5 seconds. The total wall time saving is smaller because tests run in parallel — the saving per test is the more meaningful metric, and compounds as more tests reuse the fixture.
+
+> More optimisations planned — see below.
+
+---
+
 ## CI Pipeline
 
 API tests run automatically on every push and pull request via GitHub Actions.

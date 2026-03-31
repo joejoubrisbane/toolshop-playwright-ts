@@ -1,8 +1,6 @@
 import { test, expect } from "@fixtures/pages.fixtures";
 import { randomState } from "@helpers/stats";
 import { CheckoutPage } from "@pages/checkout.page";
-import { registerUser } from "@datafactory/register";
-
 const searchTerm = "Combination Pliers";
 const userInfo = {
   street: "123 Main St",
@@ -50,12 +48,8 @@ const paymentScenarios = [
   },
 ];
 
-test.beforeEach(async ({ page, loginPage }) => {
-  const email = `customer+${Date.now()}-${Math.random().toString(36).slice(2)}@practicesoftwaretesting.com`;
-  const password = process.env.NEW_USER_PASSWORD!;
-  await registerUser(email, password);
-  await loginPage.goto();
-  await loginPage.login(email, password);
+test.beforeEach(async ({ page }) => {
+  // context is already logged in via workerUser storageState — just navigate
   await page.goto("/");
 });
 
