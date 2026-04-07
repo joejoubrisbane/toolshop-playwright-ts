@@ -1,6 +1,33 @@
-import { test, expect } from "@playwright/test";
+import { test, expect ,APIRequestContext } from "@playwright/test";
 
-test("GET /products id", async ({ request }) => {
+async function deleteProduct(request: APIRequestContext, token: string, id: string) {
+  if (id) {
+    await request.delete(`/products/${id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  }
+}
+
+test.describe("Products API", () => {
+  let token: string;
+
+  test.beforeAll(async ({ request }) => {
+    const res = await request.post("/users/login", {
+      data: {
+        email: process.env.TEST_ADMIN_EMAIL,
+        password: process.env.TEST_PASSWORD,
+      },
+    });
+    const { access_token } = await res.json();
+    token = access_token;
+  });
+
+ 
+
+
+  test.describe("GET /products", () => {
+
+  test("GET /products id", async ({ request }) => {
 
   const response = await request.get("/products/search",{
     params: {
@@ -15,3 +42,11 @@ test("GET /products id", async ({ request }) => {
   const productBody = await productResponse.json();
   expect(productBody.name).toBe("Combination Pliers");
 });
+  })
+
+
+
+
+
+  
+})
