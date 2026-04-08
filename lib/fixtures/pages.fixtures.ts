@@ -6,6 +6,7 @@ import { AlertPage } from "@pages/alert.page";
 import { NavigationPage } from "@pages/navigation.page";
 import { CheckoutPage } from "@pages/checkout.page";
 import { SearchPage } from "@pages/search.page";
+import { MessagesPage } from "@pages/messages.page";
 import { registerUser } from "@datafactory/register";
 
 type WorkerUser = {
@@ -22,6 +23,7 @@ type PageFixtures = {
   navigationPage: NavigationPage;
   checkoutPage: CheckoutPage;
   searchPage: SearchPage;
+  messagesPage: MessagesPage;
 };
 
 type WorkerFixtures = {
@@ -73,6 +75,9 @@ export const test = base.extend<PageFixtures, WorkerFixtures>({
   },
   searchPage: async ({ page }, use) => {
     await use(new SearchPage(page));
+  },
+  messagesPage: async ({ page }, use) => {
+    await use(new MessagesPage(page));
   },
 });
 
