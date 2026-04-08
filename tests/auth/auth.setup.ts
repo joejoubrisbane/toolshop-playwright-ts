@@ -1,6 +1,6 @@
-import { test as setup, expect } from "@playwright/test";
+import { test as setup, expect } from "@fixtures/pages.fixtures";
 import { registerUser } from "../../lib/datafactory/register";
-import { LoginPage } from "../../lib/page/login.page";
+
 setup("authenticate via api call", async ({ context, page, request }) => {
   const BASE_URL = process.env.API_URL || "https://api.practicesoftwaretesting.com";
   const APP_URL = process.env.BASE_URL || "https://practicesoftwaretesting.com";
@@ -30,8 +30,7 @@ setup("authenticate via api call", async ({ context, page, request }) => {
   // 4. Now save storage state — origins will be populated
   await context.storageState({ path: adminAuthFile });
 });
-setup("authenticate with new sign up user", async ({ page, context }) => {
-  const loginPage = new LoginPage(page);
+setup("authenticate with new sign up user", async ({ page, context, loginPage }) => {
   const email = `customer+${Date.now()}@practicesoftwaretesting.com`;
   const password = process.env.NEW_USER_PASSWORD! ;
   const customer01AuthFile = ".auth/customer01.json";
