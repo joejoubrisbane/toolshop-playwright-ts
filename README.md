@@ -1,91 +1,163 @@
 # Toolshop Playwright TypeScript
 [![Playwright Tests](https://github.com/joejoubrisbane/toolshop-playwright-ts/actions/workflows/playwright.yml/badge.svg)](https://github.com/joejoubrisbane/toolshop-playwright-ts/actions/workflows/playwright.yml)
-A Playwright end-to-end and API test suite built as a personal portfolio project,
-covering core e-commerce user flows on [practicesoftwaretesting.com](https://practicesoftwaretesting.com).
+
+A Playwright end-to-end and API test suite built as a personal portfolio project, covering core e-commerce user flows on [practicesoftwaretesting.com](https://practicesoftwaretesting.com).
+
+---
 
 ## Tech Stack
 
-- [Playwright](https://playwright.dev/) with TypeScript
-- Cross-browser: Chromium, Firefox, WebKit (Safari)
-- Node.js
-- GitHub Actions CI
+- **[Playwright](https://playwright.dev/)** with TypeScript — E2E and API testing
+- **Node.js 24** — runtime
+- **GitHub Actions** — CI/CD pipeline
+- **Docker Compose** — full local stack for CI (Laravel API + Angular UI + MariaDB + Nginx)
+- **dotenv** — environment variable management
+
+---
 
 ## Project Structure
+
 ```
-tests/
-  api/
-    api.spec.ts          # GET /products, POST /users/login
-    product.spec.ts      # Dynamic product search and retrieval
-  auth/
-    auth.setup.ts        # Auth state setup (UI login + API token strategies)
-  checkout/
-    checkout.spec.ts     # Parallel checkout flows across 5 payment methods
-  contact/
-    contact.spec.ts      # Contact form submission flow
-  ui/
-    search.spec.ts       # Search, price range filter, and API mocking tests
-lib/
-  datafactory/
-    register.ts          # API-based user registration with dynamic test data
-  fixtures/
-    pages.fixtures.ts    # Custom test fixtures composing all page objects
-  helpers/
-    action.ts            # Reusable UI actions (e.g. setSliderValue)
-    arrays.ts            # Array utility helpers
-    messages.ts          # Shared message constants
-    stats.ts             # Random data helpers (e.g. randomState)
-  pages/
-    alert.page.ts        # Alert/notification page object
-    checkout.page.ts     # Checkout page object (billing, payment, confirmation)
-    home.page.ts         # Homepage page object
-    login.page.ts        # Login page object
-    navigation.page.ts   # Navigation/header page object
-    product.page.ts      # Product detail page object
-    search.page.ts       # Search page object (search input, filters, price slider)
-scripts/
-  inspect-slider.js      # One-off script to inspect DOM elements in the browser
-playwright.config.ts     # Global configuration
-.github/workflows/
-  playwright.yml         # GitHub Actions CI pipeline
+toolshop-playwright-ts/
+├── tests/
+│   ├── api/
+│   │   ├── api.spec.ts          # POST /users/login
+│   │   ├── brand.spec.ts        # Full CRUD: GET, POST, PUT, PATCH, DELETE /brands
+│   │   └── product.spec.ts      # Dynamic product search by name → fetch by ID
+│   ├── auth/
+│   │   └── auth.setup.ts        # Two auth strategies: UI login + API token injection
+│   └── ui/
+│       ├── checkout.spec.ts     # 5 payment methods as parallel parameterised tests
+│       ├── contact.spec.ts      # Contact form: register → message → reply workflow
+│       └── search.spec.ts       # Search, price range filter, API response mocking
+├── lib/
+│   ├── datafactory/
+│   │   └── register.ts          # API-based user registration factory
+│   ├── fixtures/
+│   │   └── pages.fixtures.ts    # Worker-scoped auth + all page object fixtures
+│   ├── helpers/
+│   │   ├── action.ts            # setSliderValue() — keyboard-driven slider control
+│   │   ├── messages.ts          # createMessage() — API helper with auth token extraction
+│   │   └── stats.ts             # randomState() — random Australian state generator
+│   └── pages/
+│       ├── alert.page.ts
+│       ├── checkout.page.ts
+│       ├── home.page.ts
+│       ├── login.page.ts
+│       ├── messages.page.ts
+│       ├── navigation.page.ts
+│       ├── product.page.ts
+│       └── search.page.ts
+├── .auth/                       # Persisted browser auth states (gitignored)
+├── .github/workflows/
+│   └── playwright.yml           # GitHub Actions CI pipeline
+├── docker-compose.ci.yml        # Full stack: API + UI + MariaDB + Nginx
+├── playwright.config.ts
+└── tsconfig.json                # Path aliases: @pages, @fixtures, @helpers, @datafactory
 ```
 
-## Key Features
+---
 
-- **Page Object Model (POM)** — Typed page classes covering login, home, search, product, checkout, alert, and navigation
-- **Custom fixtures** — `pages.fixtures.ts` composes all page objects into a single reusable fixture
-- **Data Factory pattern** — `registerUser()` generates unique test users via API using `Date.now()` for isolated test runs
-- **Parallel checkout coverage** — 5 payment methods (Buy Now Pay Later, Bank Transfer, Cash on Delivery, Credit Card, Gift Card) run as parallel parameterised tests
-- **Dual auth strategies** — UI-based login with storageState, and API token injection into localStorage
-- **API testing** — REST endpoint validation including chained requests (search by name → fetch by dynamic ID)
-- **Network interception** — `page.route()` used to modify live API responses and assert UI renders mocked data correctly
-- **Price range filter testing** — ngx-slider interaction via keyboard with `setSliderValue()` helper, validated against intercepted API response
-- **Cross-browser configuration** — Chromium, Firefox, and WebKit projects
-- **CI-ready setup** — retries, parallel execution, single worker on CI
-- **Trace and video capture** on test failure for debugging
-- **Environment variable management** via dotenv with GitHub Secrets in CI
+## Key Patterns & Design Decisions
 
-## Performance Optimisations
+### Page Object Model (POM)
+Eight typed page classes encapsulate all locators and interactions. Methods only perform actions — assertions stay in the test. This keeps page objects reusable and tests readable.
 
-### 1. Worker-scoped login with `storageState`
+```typescript
+// lib/pages/messages.page.ts
+export class MessagesPage {
+  readonly rows: Locator;
+  readonly replyInput: Locator;
+  readonly replyButton: Locator;
 
-**Problem:** Each checkout test registered a new user and completed a full UI login before running. With 5 parallel payment method tests, that meant 5 × (API register + login page flow) — adding ~5 seconds of overhead per test.
+  async goto() { ... }
+  async getLastRow(): Promise<Locator> { ... }
+  async clickLastDetailsLink() { ... }
+  async fillReply(message: string) { ... }
+  async clickReplyButton() { ... }
+}
+```
 
-**Goal:** Keep tests independent (no shared cart state, no race conditions in parallel runs) while eliminating the repeated login UI cost.
+### Custom Fixtures
+All page objects are registered as Playwright fixtures in `pages.fixtures.ts`, making them available as named parameters in any test. A worker-scoped `workerUser` fixture handles authentication once per worker (see Performance section).
 
-**Approach:** A worker-scoped fixture (`workerUser`) registers one user and logs in once per Playwright worker. The resulting `storageState` (cookies + localStorage) is captured and injected into every test context in that worker at creation time — so each test starts already authenticated without touching the login page.
+```typescript
+test("example", async ({ messagesPage, loginPage }) => {
+  await messagesPage.goto();
+});
+```
+
+### Data Factory Pattern
+`registerUser()` creates isolated test users via API using `Date.now()` + `Math.random()` suffixes to prevent email collisions in parallel test runs.
+
+```typescript
+const email = `customer+${Date.now()}_${Math.random().toString(36).substring(2, 7)}@...`;
+```
+
+### Network Response Interception
+`page.waitForResponse()` is registered **before** the action that triggers the request — avoiding race conditions where the response arrives before the listener starts.
+
+```typescript
+// Register listener first, then trigger the action
+const replyResponsePromise = page.waitForResponse(
+  (r) => r.url().includes(`/messages/${messageId}/reply`) && r.request().method() === "POST"
+);
+await messagesPage.clickReplyButton();
+const body = await (await replyResponsePromise).json();
+expect(body.message).toBe(replyMessage);
+```
+
+This pattern also captures API responses for assertion — verifying both the UI interaction and the underlying API contract in a single step.
+
+### Auth State Management
+Two strategies used depending on test requirements:
+
+1. **API token injection** (admin setup) — POST to `/users/login`, extract `access_token`, inject directly into `localStorage` via `page.evaluate()`, save `storageState`
+2. **UI login with storageState** (customer setup) — full browser login flow, save resulting cookies + localStorage to `.auth/*.json`
+
+For tests that register a fresh user per run (e.g. `contact.spec.ts`), `context.storageState({ path: authFile })` is called after login to persist the new user's token for subsequent API calls in the same test.
+
+### API Response Mocking
+`page.route()` intercepts live API calls, modifies the JSON response, and validates the UI renders the mocked data — testing both the network layer and the rendering layer together.
+
+```typescript
+await page.route(`${API_URL}/products*`, async (route) => {
+  const response = await route.fetch();
+  const json = await response.json();
+  json.data[0]["name"] = "Modified Product Name";
+  await route.fulfill({ response, json });
+});
+```
+
+### Parameterised Tests
+All 5 payment method tests are generated from a data array and run in parallel — one test definition covers all scenarios.
+
+```typescript
+for (const { method, setupPayment } of paymentScenarios) {
+  test(`should complete checkout with ${method}`, async ({ ... }) => { ... });
+}
+```
+
+---
+
+## Performance Optimisation: Worker-Scoped Login
+
+**Problem:** Each checkout test registered a new user and completed a full UI login before running. With 5 parallel payment tests, that meant 5 × (API register + UI login) — ~5 seconds of overhead per test.
+
+**Solution:** A `workerUser` fixture (scoped to `"worker"`) registers one user and logs in once per Playwright worker. The resulting `storageState` is injected into every test context at creation time — tests start already authenticated.
 
 ```
 Worker starts
-  └── workerUser: register → login UI once → save storageState
+  └── workerUser: register → UI login once → save storageState
 
   Test 1: newContext({ storageState }) → already logged in → run test
   Test 2: newContext({ storageState }) → already logged in → run test
   ...
 ```
 
-Tests remain independent — each gets its own fresh browser context and manages its own cart — but the login cost is paid once per worker, not once per test.
+Tests remain independent — each gets its own fresh browser context — but the login cost is paid once per worker, not once per test.
 
-**Results (5 checkout tests, local):**
+**Results (5 checkout tests, local, fully parallel):**
 
 | Test | Before | After | Saved |
 |---|---|---|---|
@@ -96,19 +168,24 @@ Tests remain independent — each gets its own fresh browser context and manages
 | Gift Card | 21,123ms | 15,827ms | 5,296ms |
 | **Total wall time** | **43,179ms** | **39,032ms** | **~4,147ms** |
 
-Each test saves ~5 seconds. The total wall time saving is smaller because tests run in parallel — the saving per test is the more meaningful metric, and compounds as more tests reuse the fixture.
-
-> More optimisations planned — see below.
+Each test saves ~5 seconds. Total wall time saving is smaller because tests run in parallel — the per-test saving is the meaningful metric, and compounds as the test suite grows.
 
 ---
 
 ## CI Pipeline
 
-API tests run automatically on every push and pull request via GitHub Actions.
+Tests run on every push and pull request via GitHub Actions. The pipeline spins up a full local stack via Docker Compose before running tests:
 
-UI tests are designed to run locally. The practice site uses Cloudflare bot
-detection which blocks headless browsers on CI runners — a known limitation
-of public practice sites that does not apply to real internal test environments.
+1. Start Docker Compose (Laravel API + Angular UI + MariaDB + Nginx)
+2. Seed the database (`php artisan migrate:fresh --seed`)
+3. Poll API and UI health endpoints until ready
+4. Install Node 24 + dependencies + Playwright browsers (Chromium only on CI)
+5. Run all tests with environment variables from GitHub Secrets
+6. Upload `playwright-report/` as a build artifact (30-day retention)
+
+CI uses `workers: 1` and `retries: 2` to ensure stability in a single-container environment.
+
+---
 
 ## How to Run
 
@@ -119,12 +196,13 @@ npx playwright install
 ```
 
 ### Set up environment variables
-Create a `.env` file in the root directory:
+Create a `.env` file in the root:
 ```
 TEST_ADMIN_EMAIL=admin@practicesoftwaretesting.com
 TEST_PASSWORD=welcome01
 CUSTOMER_EMAIL=customer@practicesoftwaretesting.com
 API_URL=https://api.practicesoftwaretesting.com
+BASE_URL=https://practicesoftwaretesting.com
 NEW_USER_PASSWORD=TestPass123!
 ```
 
@@ -133,14 +211,20 @@ NEW_USER_PASSWORD=TestPass123!
 npx playwright test
 ```
 
-### Run API tests only
+### Run by project
 ```bash
-npx playwright test --project=api
+npx playwright test --project=api        # API tests only
+npx playwright test --project=chromium   # UI tests only
 ```
 
-### Run a specific browser
+### Run a specific file
 ```bash
-npx playwright test --project=chromium
+npx playwright test tests/ui/contact.spec.ts
+```
+
+### Open Playwright UI
+```bash
+npx playwright test --ui
 ```
 
 ### View HTML report
@@ -148,17 +232,18 @@ npx playwright test --project=chromium
 npx playwright show-report
 ```
 
+---
+
 ## Test Coverage
 
-| Area | Type | Status |
+| Area | Type | Coverage |
 |---|---|---|
-| User checkout — 5 payment methods (parallel) | UI E2E | ✅ Local |
-| Contact form submission | UI E2E | ✅ Local |
-| Search by keyword — result accuracy | UI E2E | ✅ Local |
-| Price range filter — slider + API response validation | UI E2E | ✅ Local |
-| API response mocking — modified product data rendered in UI | UI + Network | ✅ Local |
-| User registration | API | ✅ Local + CI |
-| GET /products | API | ✅ Local + CI |
+| User checkout — 5 payment methods (parallel) | UI E2E | ✅ Local + CI |
+| Contact form — register, send message, view, reply | UI E2E | ✅ Local + CI |
+| Search by keyword — result accuracy | UI E2E | ✅ Local + CI |
+| Price range filter — slider + API response validation | UI E2E | ✅ Local + CI |
+| API response mocking — modified data rendered in UI | UI + Network | ✅ Local + CI |
 | POST /users/login | API | ✅ Local + CI |
-| Dynamic product search by name → ID | API | ✅ Local + CI |
-| Auth state management (storageState) | Setup | ✅ Local |
+| Full CRUD /brands (GET, POST, PUT, PATCH, DELETE) | API | ✅ Local + CI |
+| Dynamic product search by name → ID chaining | API | ✅ Local + CI |
+| Auth state management (storageState, token injection) | Setup | ✅ Local + CI |
