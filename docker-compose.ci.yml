@@ -12,7 +12,7 @@ services:
     volumes:
       - laravel-app-code:/var/www
     depends_on:
-      - mariadb:
+       mariadb:
           condition: service_healthy
 
   angular-ui:
