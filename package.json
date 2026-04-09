@@ -18,6 +18,7 @@
   "homepage": "https://github.com/joejoubrisbane/toolshop-playwright-ts#readme",
   "devDependencies": {
     "@playwright/test": "^1.58.2",
+    "@types/k6": "^1.7.0",
     "@types/node": "^25.5.0"
   },
   "dependencies": {

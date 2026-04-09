@@ -56,6 +56,9 @@ jobs:
         CUSTOMER_EMAIL: ${{ secrets.CUSTOMER_EMAIL }}
         NEW_USER_PASSWORD: ${{ secrets.NEW_USER_PASSWORD }}
 
+    - name: Run Performance Tests
+      run: k6 run tests/performance/endpoints/product.perf.ts
+
     - uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}
       with:
