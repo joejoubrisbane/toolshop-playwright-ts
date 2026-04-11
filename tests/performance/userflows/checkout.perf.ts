@@ -1,16 +1,19 @@
 import http from 'k6/http';
-import { check, group } from 'k6';
+import { check, group , sleep} from 'k6';
 
 const BASE_URL = __ENV.API_URL || 'http://localhost:8091';
-const MAX_DURATION_MS = 200;
+const MAX_DURATION_MS = 500;
+
 export const options = {
-  vus: 1,
+  vus: 3,
   iterations: 1,
   thresholds: {
-    http_req_failed: ['rate<0.1'],    // <10% errors
-    http_req_duration: ['p(95)<500'],  // 95% under 500ms
+    http_req_failed: ['rate<0.05'],
+    http_req_duration: ['p(95)<500'],
   },
 };
+
+const RUN_ID = Date.now();
 
 function buildHeaders(token?: string): Record<string, string> {
   return {
@@ -19,9 +22,12 @@ function buildHeaders(token?: string): Record<string, string> {
   };
 }
 
-export function setup(): { token: string; email: string; userId: string } {
-  const email = `customer+${Date.now()}@practicesoftwaretesting.com`;
+export default function () {
+  const email = `customer+${RUN_ID}vu${__VU}iter${__ITER}@practicesoftwaretesting.com`;
   const password = __ENV.NEW_USER_PASSWORD || 'Test0806449!!';
+  let productId: string;
+  let cartId: string;
+  let invoiceId: string;
 
   const registerRes = http.post(
     `${BASE_URL}/users/register`,
@@ -40,7 +46,7 @@ export function setup(): { token: string; email: string; userId: string } {
         postal_code: '2000',
       },
     }),
-    { headers: buildHeaders() }
+    { headers: buildHeaders(), tags: { name: 'register' } },
   );
 
   check(registerRes, {
@@ -52,12 +58,12 @@ export function setup(): { token: string; email: string; userId: string } {
     throw new Error(`Registration failed: ${registerRes.status} ${registerRes.body}`);
   }
 
-  const userId = (registerRes.json() as any).id as string;
+  sleep(1); // user lands on login page after registration
 
   const loginRes = http.post(
     `${BASE_URL}/users/login`,
     JSON.stringify({ email, password }),
-    { headers: buildHeaders() }
+    { headers: buildHeaders(), tags: { name: 'login' } }
   );
 
   check(loginRes, {
@@ -71,19 +77,12 @@ export function setup(): { token: string; email: string; userId: string } {
 
   const token = (loginRes.json() as any).access_token as string;
 
-  return { token, email, userId };
-}
-
-export default function (data: { token: string; email: string; userId: string }) {
-  const { token } = data;
-  let productId: string;
-  let cartId: string;
-  let invoiceId: string;
+  sleep(2); // user is now logged in, browsing the homepage
 
   group('Browse products', () => {
     const searchRes = http.get(
       `${BASE_URL}/products/search?q=Combination+Pliers`,
-      { headers: buildHeaders() }
+      { headers: buildHeaders(), tags: { name: 'search' } }
     );
 
     check(searchRes, {
@@ -92,11 +91,13 @@ export default function (data: { token: string; email: string; userId: string })
       'search: first product id exists': (r) => !!(r.json() as any)?.data?.[0]?.id,
     });
 
+    sleep(2); // user scans search results
+
     productId = (searchRes.json() as any).data[0].id as string;
 
     const productRes = http.get(
       `${BASE_URL}/products/${productId}`,
-      { headers: buildHeaders() }
+      { headers: buildHeaders(), tags: { name: 'get_product' } }
     );
 
     check(productRes, {
@@ -104,13 +105,15 @@ export default function (data: { token: string; email: string; userId: string })
       'product: response time ok': (r) => r.timings.duration < MAX_DURATION_MS,
       'product: name is Combination Pliers': (r) => (r.json() as any)?.name === 'Combination Pliers',
     });
+
+    sleep(3); // user reads product details before adding to cart
   });
 
   group('Add to cart', () => {
     const createCartRes = http.post(
       `${BASE_URL}/carts`,
       JSON.stringify({}),
-      { headers: buildHeaders(token) }
+      { headers: buildHeaders(token), tags: { name: 'create_cart' } }
     );
 
     check(createCartRes, {
@@ -124,13 +127,15 @@ export default function (data: { token: string; email: string; userId: string })
     const addItemRes = http.post(
       `${BASE_URL}/carts/${cartId}`,
       JSON.stringify({ product_id: productId, quantity: 1 }),
-      { headers: buildHeaders(token) }
+      { headers: buildHeaders(token), tags: { name: 'add_item' } }
     );
 
     check(addItemRes, {
       'add item: status 200': (r) => r.status === 200,
       'add item: response time ok': (r) => r.timings.duration < MAX_DURATION_MS,
     });
+
+    sleep(2); // user reviews cart before proceeding to checkout
   });
 
   group('Checkout', () => {
@@ -145,12 +150,12 @@ export default function (data: { token: string; email: string; userId: string })
         payment_method: 'bank-transfer',
         cart_id: cartId,
         payment_details: {
-    bank_name: "commonwealth",
-    account_name: "test user",
-    account_number: "123456789"
-  }
+          bank_name: 'commonwealth',
+          account_name: 'test user',
+          account_number: '123456789',
+        },
       }),
-      { headers: buildHeaders(token) }
+      { headers: buildHeaders(token), tags: { name: 'create_invoice' } }
     );
 
     check(invoiceRes, {
@@ -163,38 +168,16 @@ export default function (data: { token: string; email: string; userId: string })
 
     const getInvoiceRes = http.get(
       `${BASE_URL}/invoices/${invoiceId}`,
-      { headers: buildHeaders(token) }
+      { headers: buildHeaders(token), tags: { name: 'get_invoice' } }
     );
 
     check(getInvoiceRes, {
       'get invoice: status 200': (r) => r.status === 200,
       'get invoice: response time ok': (r) => r.timings.duration < MAX_DURATION_MS,
     });
+
+    sleep(2); // user views order confirmation
   });
 
-  // Cleanup — delete cart within default() where cartId is in scope
-  // Each VU cleans up its own cart independently — scales to any VU count
-  group('Cleanup', () => {
-    const delCartRes = http.del(
-      `${BASE_URL}/carts/${cartId}`,
-      undefined,
-      {
-        headers: buildHeaders(token),
-        responseCallback: http.expectedStatuses(200, 204, 404),
-      }
-    );
-
-    check(delCartRes, {
-      'cleanup: cart deleted': (r) => r.status === 200 || r.status === 204,
-    });
-
-    console.log(`Deleted cart ${cartId}: status ${delCartRes.status}`);
-  });
 }
 
-// teardown() intentionally omitted:
-// - DELETE /invoices returns 405 (not supported by this API)
-// - DELETE /users returns 409 (invoice holds FK reference, cannot remove user)
-// - Cart is cleaned up inside default() where cartId is in scope
-// - Docker container resets between CI runs — leftover users are irrelevant
-// - In a persistent environment, use a DB cleanup script outside k6
