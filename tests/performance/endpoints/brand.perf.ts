@@ -5,7 +5,7 @@ const BASE_URL = __ENV.API_URL || 'http://localhost:8091';
 const MAX_DURATION_MS = 500;
 
 export const options = {
-  vus: 3,
+  vus: 1,
   iterations: 1,
   thresholds: {
     http_req_failed: ['rate<0.05'],

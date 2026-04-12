@@ -45,11 +45,12 @@ test.describe("Search Functionality", () => {
         }
     });
     test("Validate product data is visible from modified API response", async ({ searchPage, page }) => {
+      const modifiedProducName:string = "Modified Product Name";
         await test.step("overwirte /products API response to include additional product details", async () => {
-            await page.route(`${process.env.API_URL || "https://api.practicesoftwaretesting.com"}/products*`, async(route) => {
+            await page.route(`${process.env.API_URL || "https://api.practicesoftwaretesting.com"}/products*`, async(route) => {       
                 const response = await route.fetch();
                 const json = await response.json();
-                json.data[0]["name"] = "Modified Product Name";
+                json.data[0]["name"] = modifiedProducName;
                 json.data[0]["price"] = 99.99;
                 json.data[0]["description"] = "Modified Product Description";
                 json.data[0]["in_stock"] = false;
@@ -58,7 +59,7 @@ test.describe("Search Functionality", () => {
         });
         await page.goto("/");
         await page.waitForURL("/");
-        await expect(searchPage.productNames.first()).toHaveText("Modified Product Name");
-        await searchPage.clickProductItem("Modified Product Name");
+        await expect(searchPage.productNames.first()).toHaveText(modifiedProducName);
+        await searchPage.clickProductItem(modifiedProducName);
     });
 });
