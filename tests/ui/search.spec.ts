@@ -53,7 +53,7 @@ test.describe("Search Functionality", () => {
                 json.data[0]["price"] = 99.99;
                 json.data[0]["description"] = "Modified Product Description";
                 json.data[0]["in_stock"] = false;
-                await route.fulfill({ response,json });
+                await route.fulfill({ response, json });
             });
         });
         await page.goto("/");

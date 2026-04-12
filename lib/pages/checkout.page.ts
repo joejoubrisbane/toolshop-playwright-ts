@@ -2,6 +2,7 @@ import { type Page, type Locator } from "@playwright/test";
 
 export class CheckoutPage {
   readonly page: Page;
+  // product-title is a display-only <span> with no ARIA role; use getByText in assertions
   readonly productTitle: Locator;
   readonly stepIndicator: Locator;
   readonly proceedButton: Locator;
@@ -13,10 +14,10 @@ export class CheckoutPage {
     this.page = page;
     this.productTitle = page.getByTestId("product-title");
     this.stepIndicator = page.locator(".step-indicator");
-    this.proceedButton = page.getByRole("button", { name: " Proceed to checkout " });
-    this.confirmButton = page.getByTestId("finish");
-    this.paymentMethodSelect = page.getByTestId("payment-method");
-    this.monthlyInstallmentsSelect = page.getByTestId("monthly_installments");
+    this.proceedButton = page.getByRole("button", { name: "Proceed to checkout" });
+    this.confirmButton = page.getByRole("button", { name: "Confirm" });
+    this.paymentMethodSelect = page.getByLabel("Payment Method");
+    this.monthlyInstallmentsSelect = page.getByLabel("Monthly installments");
   }
 
   async clickProceedToCheckoutButton() {

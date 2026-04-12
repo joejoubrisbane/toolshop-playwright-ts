@@ -7,7 +7,7 @@ export class NavigationPage {
 
   constructor(page: Page) {
     this.page = page;
-    this.cartLink = page.getByTestId("nav-cart");
+    this.cartLink = page.getByRole("link", { name: "cart" });
     this.cartQuantity = page.getByTestId("cart-quantity");
   }
 

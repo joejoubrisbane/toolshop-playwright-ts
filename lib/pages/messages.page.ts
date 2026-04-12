@@ -1,19 +1,20 @@
-import { type Page, type Locator } from "@playwright/test";
+import { type Page, type Locator, expect } from "@playwright/test";
 
 export class MessagesPage {
   readonly page: Page;
   readonly rows: Locator;
   readonly detailsLink: Locator;
-  readonly replyInput: Locator;
   readonly replyButton: Locator;
 
   constructor(page: Page) {
     this.page = page;
-    this.rows = page.locator("table tbody tr");
+    // Data rows only (filter out the header row which has no cells)
+    this.rows = page.getByRole("table").getByRole("row").filter({ has: page.getByRole("cell") });
     this.detailsLink = page.getByRole("link", { name: "Details" });
-    this.replyInput = page.getByTestId("message");
     this.replyButton = page.getByRole("button", { name: "Reply" });
   }
+
+  // ── Inbox ────────────────────────────────────────────────────────────────
 
   async goto() {
     await this.page.goto("/account/messages");
@@ -33,19 +34,38 @@ export class MessagesPage {
     return this.rows.nth(count - 1);
   }
 
-  async clickFirstDetailsLink() {
+  /** Assert subject, message preview, and status on the newest inbox row. */
+  async verifyFirstRow(subject: string, messagePreview: string, status: string) {
+    const row = await this.getFirstRow();
+    await expect(row.getByRole("cell").nth(0)).toHaveText(subject);
+    await expect(row.getByRole("cell").nth(1)).toContainText(messagePreview);
+    await expect(row.getByRole("cell").nth(2)).toHaveText(status);
+  }
+
+  // ── Message detail ───────────────────────────────────────────────────────
+
+  /** Click the first Details link and wait for the GET detail response. */
+  async viewFirstMessage() {
+    const responsePromise = this.page.waitForResponse(
+      (r) => r.url().includes("/messages/") && r.request().method() === "GET"
+    );
     await this.detailsLink.first().click();
+    await responsePromise;
   }
 
-  async clickLastDetailsLink() {
-    await this.detailsLink.last().click();
+  /** Assert that a piece of text is visible in the message detail. */
+  async verifyMessageVisible(text: string) {
+    await expect(this.page.getByText(text).first()).toBeVisible();
   }
 
-  async fillReply(message: string) {
-    await this.replyInput.fill(message);
-  }
-
-  async clickReplyButton() {
+  /** Fill the reply box, click Reply, wait for the POST, and return the HTTP status. */
+  async sendReply(text: string): Promise<number> {
+    await this.page.getByRole("textbox").fill(text);
+    const responsePromise = this.page.waitForResponse(
+      (r) => r.url().includes("/messages/") && r.request().method() === "POST"
+    );
     await this.replyButton.click();
+    const response = await responsePromise;
+    return response.status();
   }
 }
