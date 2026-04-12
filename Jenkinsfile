@@ -25,14 +25,14 @@ pipeline {
 
         stage('Start application') {
             steps {
-                sh 'docker-compose -f docker-compose.ci.yml up -d'
+                sh 'docker compose -f docker-compose.ci.yml up -d'
             }
         }
 
         stage('Seed database') {
             steps {
-                sh 'docker-compose -f docker-compose.ci.yml exec -T laravel-api php artisan migrate:fresh --seed --force'
-                sh 'docker-compose -f docker-compose.ci.yml exec -T laravel-api php artisan cache:clear'
+                sh 'docker compose -f docker-compose.ci.yml exec -T laravel-api php artisan migrate:fresh --seed --force'
+                sh 'docker compose -f docker-compose.ci.yml exec -T laravel-api php artisan cache:clear'
             }
         }
 
@@ -82,7 +82,7 @@ pipeline {
                 reportFiles: 'index.html',
                 reportName: 'Playwright Report'
             ])
-            sh 'docker-compose -f docker-compose.ci.yml down'
+            sh 'docker compose -f docker-compose.ci.yml down'
         }
     }
 }
