@@ -17,16 +17,24 @@ export class MessagesPage {
 
   async goto() {
     await this.page.goto("/account/messages");
-    await this.page.waitForLoadState("networkidle");
+    await this.rows.first().waitFor({ state: "visible" });
   }
 
   async getRowCount(): Promise<number> {
     return this.rows.count();
   }
 
+  async getFirstRow(): Promise<Locator> {
+    return this.rows.first();
+  }
+
   async getLastRow(): Promise<Locator> {
     const count = await this.rows.count();
     return this.rows.nth(count - 1);
+  }
+
+  async clickFirstDetailsLink() {
+    await this.detailsLink.first().click();
   }
 
   async clickLastDetailsLink() {

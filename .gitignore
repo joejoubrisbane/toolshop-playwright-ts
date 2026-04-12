@@ -9,3 +9,6 @@ npm-debug.log
 .auth/
 .env
 .har/
+.claude/
+.playwright-cli/
+.vscode/

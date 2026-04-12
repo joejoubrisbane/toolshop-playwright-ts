@@ -17,10 +17,10 @@ export class LoginPage {
     await this.page.goto("/auth/login");
   }
 
-  async login(email: string, password: string) {
+  async login(email: string, password: string, redirectUrl: string = "**/account") {
     await this.emailInput.fill(email);
     await this.passwordInput.fill(password);
     await this.loginButton.click();
-    await this.page.waitForURL("**/account");
+    await this.page.waitForURL(redirectUrl);
   }
 }
