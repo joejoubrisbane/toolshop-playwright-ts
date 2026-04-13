@@ -11,6 +11,13 @@ RUN apt-get update && apt-get install -y \
     && apt-get install -y nodejs \
     && rm -rf /var/lib/apt/lists/*
 
+# Install k6 performance testing tool
+RUN curl -fsSL https://pkg.k6.io/key.gpg | gpg --dearmor -o /usr/share/keyrings/k6-archive-keyring.gpg \
+    && echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://pkg.k6.io/deb stable main" \
+       > /etc/apt/sources.list.d/k6.list \
+    && apt-get update && apt-get install -y k6 \
+    && rm -rf /var/lib/apt/lists/*
+
 # Install Docker Compose v2 plugin
 RUN mkdir -p /usr/local/lib/docker/cli-plugins \
     && curl -SL https://github.com/docker/compose/releases/download/v2.24.0/docker-compose-linux-x86_64 \
