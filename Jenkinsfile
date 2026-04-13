@@ -27,7 +27,6 @@ pipeline {
         stage('Cleanup') {
             steps {
                 sh 'docker compose -f docker-compose.ci.yml down --remove-orphans || true'
-                cleanWs()
             }
         }
 
@@ -85,7 +84,8 @@ pipeline {
             archiveArtifacts artifacts: 'test-results/**/*.zip, test-results/**/*.png, test-results/**/*.webm', allowEmptyArchive: true
         }
         always {
-            sh 'docker compose -f docker-compose.ci.yml down'
+            sh 'docker compose -f docker-compose.ci.yml down || true'
+            cleanWs()
         }
     }
 }
