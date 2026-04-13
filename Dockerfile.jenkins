@@ -12,8 +12,8 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Install k6 performance testing tool
-RUN curl -L https://github.com/grafana/k6/releases/download/v0.55.0/k6-v0.55.0-linux-amd64.tar.gz \
-    | tar -xz --strip-components=1 -C /usr/local/bin k6-v0.55.0-linux-amd64/k6
+RUN curl -L https://github.com/grafana/k6/releases/download/v0.52.0/k6-v0.52.0-linux-amd64.tar.gz \
+    | tar -xz --strip-components=1 -C /usr/local/bin k6-v0.52.0-linux-amd64/k6
 
 # Install Docker Compose v2 plugin
 RUN mkdir -p /usr/local/lib/docker/cli-plugins \
