@@ -24,6 +24,12 @@ pipeline {
             }
         }
 
+        stage('Cleanup') {
+            steps {
+                sh 'docker compose -f docker-compose.ci.yml down --remove-orphans || true'
+            }
+        }
+
         stage('Start application') {
             steps {
                 sh 'docker compose -f docker-compose.ci.yml up -d'
