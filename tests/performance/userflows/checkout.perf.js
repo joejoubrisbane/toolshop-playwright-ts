@@ -46,7 +46,7 @@ export default function () {
         postal_code: '2000',
       },
     }),
-    { headers: buildHeaders(undefined), tags: { name: 'register' } },
+    { headers: buildHeaders(), tags: { name: 'register' } },
   );
 
   check(registerRes, {
@@ -63,7 +63,7 @@ export default function () {
   const loginRes = http.post(
     `${BASE_URL}/users/login`,
     JSON.stringify({ email, password }),
-    { headers: buildHeaders(undefined), tags: { name: 'login' } }
+    { headers: buildHeaders(), tags: { name: 'login' } }
   );
 
   check(loginRes, {
@@ -82,7 +82,7 @@ export default function () {
   group('Browse products', () => {
     const searchRes = http.get(
       `${BASE_URL}/products/search?q=Combination+Pliers`,
-      { headers: buildHeaders(undefined), tags: { name: 'search' } }
+      { headers: buildHeaders(), tags: { name: 'search' } }
     );
 
     check(searchRes, {
@@ -98,7 +98,7 @@ export default function () {
 
     const productRes = http.get(
       `${BASE_URL}/products/${productId}`,
-      { headers: buildHeaders(undefined), tags: { name: 'get_product' } }
+      { headers: buildHeaders(), tags: { name: 'get_product' } }
     );
 
     check(productRes, {
