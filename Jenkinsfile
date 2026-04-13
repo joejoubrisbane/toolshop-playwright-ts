@@ -12,8 +12,8 @@ pipeline {
         TEST_PASSWORD       = credentials('TEST_PASSWORD')
         CUSTOMER_EMAIL      = credentials('CUSTOMER_EMAIL')
         NEW_USER_PASSWORD   = credentials('NEW_USER_PASSWORD')
-        BASE_URL            = 'http://172.17.0.1:4200'
-        API_URL             = 'http://172.17.0.1:8091'
+        BASE_URL            = 'http://localhost:4200'
+        API_URL             = 'http://localhost:8091'
         HOST_WORKSPACE      = '/var/lib/docker/volumes/jenkins_home/_data/workspace/toolshop-playwright'
     }
 
@@ -39,13 +39,13 @@ pipeline {
 
         stage('Wait for API') {
             steps {
-                sh "timeout 120 bash -c 'until [ \"\$(curl -s -o /dev/null -w \"%{http_code}\" http://172.17.0.1:8091/products)\" = \"200\" ]; do echo \"waiting...\"; sleep 5; done'"
+                sh "timeout 120 bash -c 'until [ \"\$(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8091/products)\" = \"200\" ]; do echo \"waiting...\"; sleep 5; done'"
             }
         }
 
         stage('Wait for Angular UI') {
             steps {
-                sh "timeout 300 bash -c 'until curl -sf http://172.17.0.1:4200 > /dev/null; do sleep 10; done'"
+                sh "timeout 300 bash -c 'until curl -sf http://localhost:4200 > /dev/null; do sleep 10; done'"
             }
         }
 

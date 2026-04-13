@@ -12,7 +12,7 @@ test.beforeEach(async ({ page, loginPage }) => {
 });
 
 test.describe("Search Functionality", () => {
-    test("should return relevant products when a search term is entered", async ({ searchPage }) => {
+    test.only("should return relevant products when a search term is entered", async ({ searchPage }) => {
         const searchTerm = "Cordless Drill";
         await searchPage.searchForProduct(searchTerm);
         await expect(searchPage.page.getByTestId("search-term")).toContainText(searchTerm);
