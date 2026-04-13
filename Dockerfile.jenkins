@@ -12,11 +12,8 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Install k6 performance testing tool
-RUN curl -fsSL https://pkg.k6.io/key.gpg | gpg --dearmor -o /usr/share/keyrings/k6-archive-keyring.gpg \
-    && echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://pkg.k6.io/deb stable main" \
-       > /etc/apt/sources.list.d/k6.list \
-    && apt-get update && apt-get install -y k6 \
-    && rm -rf /var/lib/apt/lists/*
+RUN curl -L https://github.com/grafana/k6/releases/download/v0.55.0/k6-v0.55.0-linux-amd64.tar.gz \
+    | tar -xz --strip-components=1 -C /usr/local/bin k6-v0.55.0-linux-amd64/k6
 
 # Install Docker Compose v2 plugin
 RUN mkdir -p /usr/local/lib/docker/cli-plugins \
