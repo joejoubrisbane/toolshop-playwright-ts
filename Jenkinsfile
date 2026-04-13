@@ -39,7 +39,7 @@ pipeline {
 
         stage('Wait for API') {
             steps {
-                sh "timeout 120 bash -c 'until [ \"\$(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8091/products)\" = \"200\" ]; do echo \"waiting...\"; sleep 5; done'"
+                sh "timeout 120 bash -c 'until [ \"\$(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8091/products)\" = \"200\" ]; do echo \"waiting...\"; sleep 5; done' || (docker compose -f docker-compose.ci.yml logs web laravel-api && exit 1)"
             }
         }
 
