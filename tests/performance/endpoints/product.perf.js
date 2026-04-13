@@ -42,10 +42,11 @@ export default function () {
     check(res, {
       'search products: status 200': (r) => r.status === 200,
       'search products: response time ok': (r) => r.timings.duration < MAX_DURATION_MS,
-      'search products: has results': (r) => !!(r.json() as any)?.data?.[0]?.id,
+      'search products: has results': (r) => !!(r.json()).data && !!(r.json()).data[0] && !!(r.json()).data[0].id,
     });
 
-    const productId = (res.json() as any)?.data?.[0]?.id as string;
+    const data = res.json();
+    const productId = data && data.data && data.data[0] && data.data[0].id;
     if (!productId) return;
 
     group('GET /products/{id}', () => {
@@ -57,7 +58,7 @@ export default function () {
       check(productRes, {
         'get product: status 200': (r) => r.status === 200,
         'get product: response time ok': (r) => r.timings.duration < MAX_DURATION_MS,
-        'get product: name exists': (r) => !!(r.json() as any)?.name,
+        'get product: name exists': (r) => !!(r.json()).name,
       });
     });
   });

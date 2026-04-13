@@ -13,14 +13,14 @@ export const options = {
   },
 };
 
-function buildHeaders(token?: string): Record<string, string> {
+function buildHeaders(token) {
   return {
     'Content-Type': 'application/json',
     ...(token && { Authorization: `Bearer ${token}` }),
   };
 }
 
-export function setup(): { token: string } {
+export function setup() {
   const loginRes = http.post(
     `${BASE_URL}/users/login`,
     JSON.stringify({
@@ -34,13 +34,13 @@ export function setup(): { token: string } {
     throw new Error(`Admin login failed: ${loginRes.status} ${loginRes.body}`);
   }
 
-  return { token: (loginRes.json() as any).access_token as string };
+  return { token: loginRes.json().access_token };
 }
 
-export default function (data: { token: string }) {
+export default function (data) {
   const { token } = data;
   const RUN_ID = `${Date.now()}vu${__VU}iter${__ITER}`;
-  let brandId: string;
+  let brandId;
 
   group('GET /brands', () => {
     const res = http.get(
@@ -51,7 +51,7 @@ export default function (data: { token: string }) {
     check(res, {
       'list brands: status 200': (r) => r.status === 200,
       'list brands: response time ok': (r) => r.timings.duration < MAX_DURATION_MS,
-      'list brands: has id field': (r) => !!(r.json() as any)?.[0]?.id,
+      'list brands: has id field': (r) => !!(r.json())[0] && !!(r.json())[0].id,
     });
   });
 
@@ -65,10 +65,10 @@ export default function (data: { token: string }) {
     check(res, {
       'create brand: status 201': (r) => r.status === 201,
       'create brand: response time ok': (r) => r.timings.duration < MAX_DURATION_MS,
-      'create brand: id exists': (r) => !!(r.json() as any)?.id,
+      'create brand: id exists': (r) => !!(r.json()).id,
     });
 
-    brandId = (res.json() as any).id as string;
+    brandId = res.json().id;
   });
 
   group('GET /brands/{id}', () => {

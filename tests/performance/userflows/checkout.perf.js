@@ -1,5 +1,5 @@
 import http from 'k6/http';
-import { check, group , sleep} from 'k6';
+import { check, group, sleep } from 'k6';
 
 const BASE_URL = __ENV.API_URL || 'http://localhost:8091';
 const MAX_DURATION_MS = 500;
@@ -15,7 +15,7 @@ export const options = {
 
 const RUN_ID = Date.now();
 
-function buildHeaders(token?: string): Record<string, string> {
+function buildHeaders(token) {
   return {
     'Content-Type': 'application/json',
     ...(token && { Authorization: `Bearer ${token}` }),
@@ -25,9 +25,9 @@ function buildHeaders(token?: string): Record<string, string> {
 export default function () {
   const email = `customer+${RUN_ID}vu${__VU}iter${__ITER}@practicesoftwaretesting.com`;
   const password = __ENV.NEW_USER_PASSWORD || 'Test0806449!!';
-  let productId: string;
-  let cartId: string;
-  let invoiceId: string;
+  let productId;
+  let cartId;
+  let invoiceId;
 
   const registerRes = http.post(
     `${BASE_URL}/users/register`,
@@ -46,67 +46,68 @@ export default function () {
         postal_code: '2000',
       },
     }),
-    { headers: buildHeaders(), tags: { name: 'register' } },
+    { headers: buildHeaders(undefined), tags: { name: 'register' } },
   );
 
   check(registerRes, {
     'register: status 201': (r) => r.status === 201,
-    'register: id exists': (r) => !!(r.json() as any)?.id,
+    'register: id exists': (r) => !!(r.json()).id,
   });
 
   if (registerRes.status !== 201) {
     throw new Error(`Registration failed: ${registerRes.status} ${registerRes.body}`);
   }
 
-  sleep(1); // user lands on login page after registration
+  sleep(1);
 
   const loginRes = http.post(
     `${BASE_URL}/users/login`,
     JSON.stringify({ email, password }),
-    { headers: buildHeaders(), tags: { name: 'login' } }
+    { headers: buildHeaders(undefined), tags: { name: 'login' } }
   );
 
   check(loginRes, {
     'login: status 200': (r) => r.status === 200,
-    'login: access_token exists': (r) => !!(r.json() as any)?.access_token,
+    'login: access_token exists': (r) => !!(r.json()).access_token,
   });
 
   if (loginRes.status !== 200) {
     throw new Error(`Login failed: ${loginRes.status} ${loginRes.body}`);
   }
 
-  const token = (loginRes.json() as any).access_token as string;
+  const token = loginRes.json().access_token;
 
-  sleep(2); // user is now logged in, browsing the homepage
+  sleep(2);
 
   group('Browse products', () => {
     const searchRes = http.get(
       `${BASE_URL}/products/search?q=Combination+Pliers`,
-      { headers: buildHeaders(), tags: { name: 'search' } }
+      { headers: buildHeaders(undefined), tags: { name: 'search' } }
     );
 
     check(searchRes, {
       'search: status 200': (r) => r.status === 200,
       'search: response time ok': (r) => r.timings.duration < MAX_DURATION_MS,
-      'search: first product id exists': (r) => !!(r.json() as any)?.data?.[0]?.id,
+      'search: first product id exists': (r) => !!(r.json()).data && !!(r.json()).data[0] && !!(r.json()).data[0].id,
     });
 
-    sleep(2); // user scans search results
+    sleep(2);
 
-    productId = (searchRes.json() as any).data[0].id as string;
+    const searchData = searchRes.json();
+    productId = searchData.data[0].id;
 
     const productRes = http.get(
       `${BASE_URL}/products/${productId}`,
-      { headers: buildHeaders(), tags: { name: 'get_product' } }
+      { headers: buildHeaders(undefined), tags: { name: 'get_product' } }
     );
 
     check(productRes, {
       'product: status 200': (r) => r.status === 200,
       'product: response time ok': (r) => r.timings.duration < MAX_DURATION_MS,
-      'product: name is Combination Pliers': (r) => (r.json() as any)?.name === 'Combination Pliers',
+      'product: name is Combination Pliers': (r) => r.json().name === 'Combination Pliers',
     });
 
-    sleep(3); // user reads product details before adding to cart
+    sleep(3);
   });
 
   group('Add to cart', () => {
@@ -119,10 +120,10 @@ export default function () {
     check(createCartRes, {
       'create cart: status 201': (r) => r.status === 201,
       'create cart: response time ok': (r) => r.timings.duration < MAX_DURATION_MS,
-      'create cart: id exists': (r) => !!(r.json() as any)?.id,
+      'create cart: id exists': (r) => !!(r.json()).id,
     });
 
-    cartId = (createCartRes.json() as any).id as string;
+    cartId = createCartRes.json().id;
 
     const addItemRes = http.post(
       `${BASE_URL}/carts/${cartId}`,
@@ -135,7 +136,7 @@ export default function () {
       'add item: response time ok': (r) => r.timings.duration < MAX_DURATION_MS,
     });
 
-    sleep(2); // user reviews cart before proceeding to checkout
+    sleep(2);
   });
 
   group('Checkout', () => {
@@ -161,10 +162,10 @@ export default function () {
     check(invoiceRes, {
       'create invoice: status 201': (r) => r.status === 201,
       'create invoice: response time ok': (r) => r.timings.duration < MAX_DURATION_MS,
-      'create invoice: id exists': (r) => !!(r.json() as any)?.id,
+      'create invoice: id exists': (r) => !!(r.json()).id,
     });
-    
-    invoiceId = (invoiceRes.json() as any).id as string;
+
+    invoiceId = invoiceRes.json().id;
 
     const getInvoiceRes = http.get(
       `${BASE_URL}/invoices/${invoiceId}`,
@@ -176,8 +177,6 @@ export default function () {
       'get invoice: response time ok': (r) => r.timings.duration < MAX_DURATION_MS,
     });
 
-    sleep(2); // user views order confirmation
+    sleep(2);
   });
-
 }
-

@@ -4,8 +4,8 @@
   "description": "Playwright TypeScript E2E test suite for a practice e-commerce app —  Page Object Model, fixtures, API testing, and GitHub Actions CI.",
   "main": "index.js",
   "scripts": {
-    "k6:endpoints": "for f in tests/performance/endpoints/*.ts; do k6 run $f || exit 1; done",
-    "k6:userflows": "for f in tests/performance/userflows/*.ts; do k6 run $f || exit 1; done",
+    "k6:endpoints": "for f in tests/performance/endpoints/*.js; do k6 run $f || exit 1; done",
+    "k6:userflows": "for f in tests/performance/userflows/*.js; do k6 run $f || exit 1; done",
     "k6:all": "npm run k6:endpoints && npm run k6:userflows"
   },
   "repository": {
