@@ -14,7 +14,6 @@ pipeline {
         NEW_USER_PASSWORD   = credentials('NEW_USER_PASSWORD')
         BASE_URL            = 'http://localhost:4200'
         API_URL             = 'http://localhost:8091'
-        HOST_WORKSPACE      = '/var/lib/docker/volumes/jenkins_home/_data/workspace/toolshop-playwright'
     }
 
     stages {
@@ -26,7 +25,7 @@ pipeline {
 
         stage('Start application') {
             steps {
-                sh 'WORKSPACE=${HOST_WORKSPACE} docker compose -f docker-compose.ci.yml up -d'
+                sh 'docker compose -f docker-compose.ci.yml up -d'
             }
         }
 
