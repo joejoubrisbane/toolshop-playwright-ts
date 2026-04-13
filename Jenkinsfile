@@ -27,6 +27,7 @@ pipeline {
         stage('Cleanup') {
             steps {
                 sh 'docker compose -f docker-compose.ci.yml down --remove-orphans || true'
+                cleanWs()
             }
         }
 
