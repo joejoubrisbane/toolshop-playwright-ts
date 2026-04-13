@@ -1,0 +1,18 @@
+FROM jenkins/jenkins:lts
+
+USER root
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    libatomic1 \
+    docker.io \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Playwright browser dependencies
+RUN npx playwright install-deps chromium
+
+# Give jenkins user docker access
+RUN usermod -aG docker jenkins
+
+USER jenkins
